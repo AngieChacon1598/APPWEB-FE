@@ -21,3 +21,4 @@ fs.writeFileSync(envPath, envContent, 'utf8');
 console.log(`✅ Archivo de entorno generado: ${envPath}`);
 console.log(`✅ API URL configurada: ${apiUrl}`);
 
+
