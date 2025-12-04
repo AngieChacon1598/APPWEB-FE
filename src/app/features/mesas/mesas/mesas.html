@@ -1,0 +1,97 @@
+<h1 class="text-6xl text-center my-6 font-mono">Gestión de Mesas</h1>
+
+<!-- Información del usuario actual -->
+<div class="text-center mb-4">
+  <span class="text-sm text-gray-600">
+    Usuario: {{currentUser?.username}} ({{currentUser?.role}})
+  </span>
+</div>
+
+<!-- Toggle para cambiar entre mesas activas e inactivas -->
+<div class="flex justify-center mb-6">
+  <div class="bg-gray-100 rounded-lg p-1 flex">
+    <button
+      (click)="toggleMesaStatus()"
+      [class]="showActiveMesas ? 'bg-blue-600 text-white px-4 py-2 rounded-md font-medium' : 'text-gray-600 px-4 py-2 rounded-md font-medium hover:bg-gray-200'"
+    >
+      Mesas Activas
+    </button>
+    <button
+      (click)="toggleMesaStatus()"
+      [class]="!showActiveMesas ? 'bg-red-600 text-white px-4 py-2 rounded-md font-medium' : 'text-gray-600 px-4 py-2 rounded-md font-medium hover:bg-gray-200'"
+    >
+      Mesas Inactivas
+    </button>
+  </div>
+</div>
+
+<div class="flex justify-between items-center mb-4">
+  <div class="flex items-center space-x-4">
+    <span class="text-sm text-gray-600">
+      Mostrando {{mesas.length}} mesas {{showActiveMesas ? 'activas' :
+      'inactivas'}}
+    </span>
+  </div>
+
+  <div class="flex items-center space-x-4">
+    <input
+      class="border-4 border-blue-400/60 rounded-lg pl-8 mr-6"
+      type="search"
+      placeholder="buscar por número de mesa"
+    />
+
+    <!-- Solo ADMIN puede crear mesas -->
+    <button
+      *ngIf="canManageMesas"
+      (click)="openFormulario()"
+      class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+    >
+      Nueva Mesa
+    </button>
+  </div>
+</div>
+
+<!-- Loading indicator -->
+<div *ngIf="loading" class="text-center py-4">
+  <div
+    class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
+  ></div>
+  <span class="ml-2">Cargando mesas...</span>
+</div>
+
+<!-- Mesas table -->
+<app-tables-components
+  [data]="mesas"
+  [columns]="columns"
+  [idTdable]="'idTable'"
+  [showActiveUsers]="showActiveMesas"
+  [canManage]="canManageMesas"
+  [canManageEdit]="canManageMesas"
+  (editar)="onEditMesa($event)"
+  (observar)="onViewMesa($event)"
+  (inactivar)="onDeleteMesa($event)"
+>
+</app-tables-components>
+
+<!-- Mesa registration modal (solo ADMIN) -->
+<div
+  *ngIf="open && canManageMesas"
+  class="fixed inset-0 z-50 flex items-start justify-center"
+>
+  <div class="absolute inset-0 modal-backdrop"></div>
+  <div
+    class="mt-16 bg-white dark:bg-gray-800 rounded shadow-lg w-11/12 max-w-2xl p-4 relative z-10"
+  >
+    <button (click)="open = false" class="absolute top-2 right-2 text-gray-600">
+      ✕
+    </button>
+    <app-forms-components
+      [tituloFormulario]="tituloFormulario"
+      [campos]="campos"
+      [datosIniciales]="editingMesa"
+      (guardar)="onGuardar($event)"
+      (cerrar)="onCerrar()"
+      (limpiar)="onLimpiar()"
+    ></app-forms-components>
+  </div>
+</div>

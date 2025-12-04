@@ -1,0 +1,139 @@
+<h1 class="text-6xl text-center my-6 font-mono">Gestión de Usuarios</h1>
+
+<!-- Información del usuario actual -->
+<div class="text-center mb-4">
+  <span class="text-sm text-gray-600">
+    Usuario: {{currentUser?.username}} ({{currentUser?.role}})
+  </span>
+</div>
+
+<!-- Toggle para cambiar entre usuarios activos e inactivos -->
+<div class="flex justify-center mb-6">
+  <div class="bg-gray-100 rounded-lg p-1 flex">
+    <button
+      (click)="showActiveUsersList()"
+      [class]="showActiveUsers ? 'bg-blue-600 text-white px-4 py-2 rounded-md font-medium' : 'text-gray-600 px-4 py-2 rounded-md font-medium hover:bg-gray-200'"
+    >
+      Usuarios Activos
+    </button>
+    <button
+      (click)="showInactiveUsersList()"
+      [class]="!showActiveUsers ? 'bg-red-600 text-white px-4 py-2 rounded-md font-medium' : 'text-gray-600 px-4 py-2 rounded-md font-medium hover:bg-gray-200'"
+    >
+      Usuarios Inactivos
+    </button>
+  </div>
+</div>
+
+<div class="flex justify-between items-center mb-4">
+  <div class="flex items-center space-x-4">
+    <select
+      (change)="onSizeChange($any($event.target).value)"
+      [value]="size"
+      class="border-2 border-blue-400/60 rounded-lg px-3 py-1"
+    >
+      <option value="5">5 por página</option>
+      <option value="10">10 por página</option>
+      <option value="20">20 por página</option>
+      <option value="50">50 por página</option>
+    </select>
+
+    <span class="text-sm text-gray-600">
+      Mostrando {{usuarios.length}} de {{totalElements}} usuarios
+    </span>
+  </div>
+
+  <div class="flex items-center space-x-4">
+    <div class="relative mr-2">
+      <input
+        class="w-72 sm:w-96 border-2 border-blue-300 rounded-lg pl-4 pr-12 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors"
+        type="search"
+        placeholder="Buscar por nombre..."
+        [(ngModel)]="search"
+        (input)="onSearch($any($event.target).value)"
+        (keyup.enter)="onSearch(search)"
+        aria-label="Buscar usuarios por nombre"
+      />
+    </div>
+
+    <!-- Solo ADMIN puede crear usuarios -->
+    <button
+      *ngIf="canManageUsers"
+      (click)="openFormulario()"
+      class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+    >
+      Nuevo Usuario
+    </button>
+  </div>
+</div>
+
+<!-- Loading indicator -->
+<div *ngIf="loading" class="text-center py-4">
+  <div
+    class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
+  ></div>
+  <span class="ml-2">Cargando usuarios...</span>
+</div>
+
+<!-- Users table -->
+<app-tables-components
+  [data]="usuarios"
+  [columns]="columns"
+  [idTdable]="'idUser'"
+  [showActiveUsers]="showActiveUsers"
+  [canManage]="canManageUsers"
+  [canManageEdit]="canManageEdit"
+  (editar)="onEditUser($event)"
+  (observar)="onViewUser($event)"
+  (inactivar)="onDeleteUser($event)"
+>
+</app-tables-components>
+
+<!-- Pagination controls -->
+<div
+  *ngIf="totalPages > 1"
+  class="flex justify-center items-center mt-6 space-x-2"
+>
+  <button
+    (click)="onPageChange(page - 1)"
+    [disabled]="page === 0"
+    class="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+  >
+    Anterior
+  </button>
+
+  <span class="px-3 py-1 bg-blue-100 rounded">
+    Página {{page + 1}} de {{totalPages}}
+  </span>
+
+  <button
+    (click)="onPageChange(page + 1)"
+    [disabled]="page >= totalPages - 1"
+    class="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+  >
+    Siguiente
+  </button>
+</div>
+
+<!-- User registration modal (solo ADMIN) -->
+<div
+  *ngIf="open && canManageUsers"
+  class="fixed inset-0 z-50 flex items-start justify-center"
+>
+  <div class="absolute inset-0 modal-backdrop"></div>
+  <div
+    class="mt-16 bg-white dark:bg-gray-800 rounded shadow-lg w-11/12 max-w-2xl p-4 relative z-10"
+  >
+    <button (click)="open = false" class="absolute top-2 right-2 text-gray-600">
+      ✕
+    </button>
+    <app-forms-components
+      [tituloFormulario]="tituloFormulario"
+      [campos]="campos"
+      [datosIniciales]="editingUser"
+      (guardar)="onGuardar($event)"
+      (cerrar)="onCerrar()"
+      (limpiar)="onLimpiar()"
+    ></app-forms-components>
+  </div>
+</div>

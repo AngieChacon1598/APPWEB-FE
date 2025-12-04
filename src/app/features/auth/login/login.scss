@@ -1,0 +1,161 @@
+/* Login component styles */
+:host {
+  --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+  --dark-bg: #0f172a;
+  --card-bg: #1e293b;
+  --border-color: #334155;
+}
+
+// Animations
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.8);
+  }
+}
+
+// Error message styling
+.error-message {
+  animation: slideIn 0.3s ease-out;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+// Input field animations and transitions
+input[type="text"],
+input[type="password"] {
+  transition: all 0.3s ease;
+
+  &:focus {
+    transform: translateY(-1px);
+  }
+
+  &.ng-invalid.ng-touched {
+    animation: shake 0.3s ease;
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+// Button styling
+button[type="submit"] {
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.2);
+    transition: left 0.5s ease;
+  }
+
+  &:hover:not(:disabled)::before {
+    left: 100%;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+// Loading spinner
+svg.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Form container
+form {
+  label {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+}
+
+// Icon styling in inputs
+.absolute.inset-y-0 {
+  svg {
+    transition: color 0.3s ease;
+  }
+}
+
+input:focus ~ .absolute svg,
+input:not(:placeholder-shown) ~ .absolute svg {
+  color: #3b82f6;
+}
+
+// Link hover effects
+a {
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #3b82f6, #6366f1);
+    transition: width 0.3s ease;
+  }
+
+  &:hover::after {
+    width: 100%;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 640px) {
+  button[type="submit"] {
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+  }
+}

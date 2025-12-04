@@ -1,0 +1,133 @@
+<div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+  <table
+    class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
+  >
+    <thead
+      class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+    >
+      <tr>
+        <th *ngFor="let col of columns" scope="col" class="px-6 py-3">
+          {{ col.header }}
+        </th>
+        <th scope="col" class="px-6 py-3">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        *ngFor="let row  of data"
+        class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600"
+      >
+        <td
+          *ngFor="let col of columns"
+          [class]="col.field === 'description' ? 'px-6 py-4 max-w-xs w-64' : 'px-6 py-4'"
+        >
+          <!-- Campo de imagen -->
+          <div *ngIf="col.field === 'imagenUrl'" class="flex items-center">
+            <img
+              *ngIf="row[col.field]"
+              [src]="row[col.field]"
+              [alt]="row['name'] || 'Imagen del producto'"
+              class="w-12 h-12 object-cover rounded-lg border border-gray-300"
+              (error)="onImageError($event)"
+            />
+            <span *ngIf="!row[col.field]" class="text-gray-400 text-sm"
+              >Sin imagen</span
+            >
+          </div>
+
+          <!-- Campo de usuario -->
+          <span *ngIf="col.field === 'userName'">
+            {{ row[col.field] || row['names'] || 'Sin usuario' }}
+          </span>
+
+          <!-- Campo de rol -->
+          <span *ngIf="col.field === 'typeUsersIdTypeUsers.name'">
+            {{ row['typeUsersIdTypeUsers']?.name || 'Sin rol' }}
+          </span>
+
+          <!-- Campo de categoría -->
+          <span *ngIf="col.field === 'category.name'">
+            {{ row['category']?.name || 'Sin categoría' }}
+          </span>
+
+          <!-- Campo de precio -->
+          <span
+            *ngIf="col.field === 'price'"
+            class="text-gray-500 dark:text-gray-400 font-medium"
+          >
+            S/. {{ row[col.field] | number:'1.2-2' }}
+          </span>
+
+          <!-- Campo de estado -->
+          <span *ngIf="col.field === 'state'">
+            <!-- Para productos (1/0) -->
+            <span
+              *ngIf="row[col.field] === 1 || row[col.field] === 0"
+              [class]="row[col.field] === 1 ? 'px-2 py-1 text-xs font-medium rounded-full bg-green-500/10 text-green-600' : 'px-2 py-1 text-xs font-medium rounded-full bg-red-500/10 text-red-600'"
+            >
+              {{ row[col.field] === 1 ? 'Activo' : 'Inactivo' }}
+            </span>
+            <!-- Para usuarios (A/I) -->
+            <span
+              *ngIf="row[col.field] === 'A' || row[col.field] === 'I'"
+              [class]="row[col.field] === 'A' ? 'px-2 py-1 text-xs font-medium rounded-full bg-green-500/10 text-green-600' : 'px-2 py-1 text-xs font-medium rounded-full bg-red-500/10 text-red-600'"
+            >
+              {{ row[col.field] === 'A' ? 'Activo' : 'Inactivo' }}
+            </span>
+          </span>
+
+          <!-- Campo de descripción -->
+          <span
+            *ngIf="col.field === 'description'"
+            class="block text-sm text-gray-500 dark:text-gray-400 break-words overflow-hidden"
+            style="
+              display: -webkit-box;
+              -webkit-line-clamp: 2;
+              -webkit-box-orient: vertical;
+            "
+            [title]="row[col.field]"
+          >
+            {{ row[col.field] }}
+          </span>
+
+          <!-- Otros campos -->
+          <span
+            *ngIf="col.field !== 'imagenUrl' && col.field !== 'userName' && col.field !== 'typeUsersIdTypeUsers.name' && col.field !== 'category.name' && col.field !== 'state' && col.field !== 'description' && col.field !== 'price'"
+          >
+            {{ row[col.field] }}
+          </span>
+        </td>
+        <td class="flex pt-4">
+          <div class="grow-1">
+            <button
+              type="button"
+              (click)="onView(row)"
+              class="font-medium text-blue-600 dark:text-blue-500 hover:underline bg-transparent border-0 p-0"
+            >
+              Observar
+            </button>
+          </div>
+          <!-- Solo mostrar botones de edición y eliminación si el usuario puede gestionar -->
+          <div *ngIf="canManageEdit" class="grow-1">
+            <button
+              type="button"
+              (click)="onEdit(row)"
+              class="font-medium text-blue-600 dark:text-blue-500 hover:underline bg-transparent border-0 p-0"
+            >
+              Editar
+            </button>
+          </div>
+          <div *ngIf="canManage" class="grow-1">
+            <button
+              type="button"
+              (click)="onInactive(row)"
+              [class]="showActiveUsers ? 'font-medium text-red-600 dark:text-red-500 hover:underline bg-transparent border-0 p-0' : 'font-medium text-green-600 dark:text-green-500 hover:underline bg-transparent border-0 p-0'"
+            >
+              {{ showActiveUsers ? 'Eliminar' : 'Restaurar' }}
+            </button>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

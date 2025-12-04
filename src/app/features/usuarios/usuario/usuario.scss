@@ -1,0 +1,24 @@
+/* Backdrop that blurs the background but keeps it visible.
+	 Uses backdrop-filter where supported; falls back to a light translucent layer. */
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.12); /* light translucent tint */
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  pointer-events: none; /* allow clicks to pass through if desired */
+}
+
+/* Ensure the modal card sits above the backdrop and is not blurred */
+.modal-backdrop + .z-10 {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* Small responsive tweak: on small screens, reduce blur intensity */
+@media (max-width: 640px) {
+  .modal-backdrop {
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+}

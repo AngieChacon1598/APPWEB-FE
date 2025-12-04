@@ -1,0 +1,420 @@
+<div class="p-6">
+  <div class="reservacion-header mb-6">
+    <div class="reservacion-header-left">
+      <h1 class="reservacion-title">Catálogo de Mesas Disponibles</h1>
+      <p class="reservacion-sub">
+        Selecciona fecha y administra tus reservas fácilmente
+      </p>
+    </div>
+
+    <div class="reservacion-header-right">
+      <div class="date-picker">
+        <svg
+          class="calendar-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M8 2v2M16 2v2M3 8h18M21 20H3V8h18v12z"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <input
+          id="global-date"
+          type="date"
+          [(ngModel)]="selectedDateIso"
+          class="date-input"
+        />
+      </div>
+      <button class="btn-multi" (click)="toggleMultiSelectMode()">
+        {{ multiSelectMode ? 'Cancelar selección' : 'Reservar varias mesas' }}
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="text-center py-6">
+    <div
+      class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
+    ></div>
+    <div class="mt-2">Cargando mesas disponibles...</div>
+  </div>
+
+  <div *ngIf="error" class="text-red-600">{{ error }}</div>
+
+  <div *ngIf="!loading && mesas.length === 0" class="text-gray-600">
+    No hay mesas disponibles en este momento.
+  </div>
+
+  <div
+    class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4"
+  >
+    <div *ngFor="let mesa of mesas" class="card-mesa">
+      <div class="card-image relative overflow-hidden rounded-md">
+        <img
+          *ngIf="mesa.imagen"
+          [src]="mesa.imagen"
+          alt="Mesa {{mesa.numberTable}}"
+          class="w-full h-full object-cover"
+          (error)="onImageError($event)"
+        />
+        <div
+          *ngIf="!mesa.imagen"
+          class="w-full h-full flex items-center justify-center bg-gray-50 text-gray-400"
+        >
+          Sin imagen
+        </div>
+        <div class="card-image-overlay p-3">
+          <div class="text-white font-semibold text-lg">
+            Mesa {{ mesa.idTable }}
+          </div>
+          <div class="text-sm">Capacidad: {{ mesa.ability }} personas</div>
+        </div>
+      </div>
+
+      <div class="card-body mt-3 flex-1 flex flex-col justify-between">
+        <div class="mb-3 text-sm text-gray-600">
+          {{ mesa.descripcion || '' }}
+        </div>
+        <div class="mt-auto flex items-center justify-end gap-3">
+          <ng-container *ngIf="!multiSelectMode">
+            <button (click)="openCreateModal(mesa)" class="btn-primary">
+              Reservar
+            </button>
+            <button (click)="verReservasMesa(mesa)" class="btn-outline">
+              Ver reservas
+            </button>
+          </ng-container>
+          <ng-container *ngIf="multiSelectMode">
+            <input
+              type="checkbox"
+              class="w-4 h-4"
+              [checked]="selectedMesaIds.indexOf(mesa.idTable) >= 0"
+              (click)="$event.stopPropagation(); toggleMesaSelection(mesa, $event)"
+              (keydown.enter)="$event.stopPropagation(); toggleMesaSelection(mesa, $event)"
+              (keydown.space)="$event.stopPropagation(); toggleMesaSelection(mesa, $event)"
+            />
+          </ng-container>
+        </div>
+      </div>
+
+      <!-- Mostrar horarios disponibles cuando la mesa está seleccionada -->
+      <div *ngIf="selectedMesaId === mesa.idTable" class="mt-3">
+        <div *ngIf="loadingTimes" class="text-sm text-gray-500">
+          Cargando horarios...
+        </div>
+        <div
+          *ngIf="!loadingTimes && availableTimes.length === 0"
+          class="text-sm text-gray-600"
+        >
+          No hay horarios disponibles para esta fecha.
+        </div>
+        <div *ngIf="!loadingTimes && availableTimes.length > 0" class="mt-2">
+          <div class="flex flex-wrap gap-2">
+            <button
+              *ngFor="let slot of availableTimes"
+              class="px-3 py-1 bg-gray-100 rounded border"
+              (click)="$event.stopPropagation(); onSelectTime(slot)"
+            >
+              {{ formatSlotLabel(slot) }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Reservas de la mesa -->
+  <div
+    *ngIf="showModal"
+    class="fixed inset-0 z-50 flex items-center justify-center"
+  >
+    <button
+      type="button"
+      aria-label="Cerrar modal"
+      class="modal-backdrop"
+      (click)="closeModal()"
+    ></button>
+    <div class="modal-content modal-enter-active">
+      <div class="modal-header">
+        <h3>Reservas - Mesa {{ modalMesa?.idTable }}</h3>
+        <button (click)="closeModal()" class="modal-close-btn">Cerrar ✕</button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="reservedLoading" class="text-center py-4">
+          <div
+            class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"
+          ></div>
+          <div class="mt-2 text-sm text-gray-600">Cargando reservas...</div>
+        </div>
+
+        <div
+          *ngIf="!reservedLoading && (!reservedTimes || reservedTimes.length === 0)"
+          class="text-gray-600"
+        >
+          No hay reservas para esta mesa en la fecha seleccionada.
+        </div>
+
+        <ul
+          *ngIf="!reservedLoading && reservedTimes && reservedTimes.length > 0"
+          class="space-y-3"
+        >
+          <li
+            *ngFor="let r of reservedTimes"
+            class="p-3 border rounded flex items-center justify-between"
+          >
+            <div>
+              <div class="flex items-center gap-3">
+                <div class="font-medium">{{ formatSlotLabel(r) }}</div>
+                <span
+                  *ngIf="r.reserved"
+                  class="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded"
+                  >Reservada</span
+                >
+              </div>
+              <div class="text-sm text-gray-500">
+                {{ r.requirements || '' }}
+              </div>
+            </div>
+            <div class="text-sm text-gray-600">
+              {{ r['estado'] || (r.reserved === true ? 'Reservada' : (r.reserved
+              === false ? 'Disponible' : '-')) }}
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="modal-footer text-right">
+        <button
+          (click)="closeModal()"
+          class="px-4 py-2 bg-blue-600 text-white rounded"
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div
+    *ngIf="multiSelectMode"
+    class="mt-4 p-4 bg-yellow-50 rounded flex items-center justify-between"
+  >
+    <div class="text-sm text-gray-700">
+      Mesas seleccionadas:
+      <span class="font-semibold">{{ selectedMesaIds.length }}</span>
+    </div>
+    <div>
+      <button
+        class="px-3 py-1 bg-indigo-600 text-white rounded"
+        [disabled]="selectedMesaIds.length === 0"
+        (click)="openMultiCreateModal()"
+      >
+        Crear reservas seleccionadas
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal: Crear reservación -->
+  <div
+    *ngIf="showCreateModal"
+    class="fixed inset-0 z-50 flex items-center justify-center"
+  >
+    <button
+      type="button"
+      aria-label="Cerrar modal"
+      class="modal-backdrop"
+      (click)="closeCreateModal()"
+    ></button>
+    <div class="modal-content modal-enter-active">
+      <div class="modal-header">
+        <h3>Crear Reservación - Mesa {{ modalMesa?.idTable }}</h3>
+        <button (click)="closeCreateModal()" class="modal-close-btn">
+          Cerrar ✕
+        </button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="createLoading" class="text-center py-4">
+          <div
+            class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"
+          ></div>
+          <div class="mt-2 text-sm text-gray-600">Creando reservación...</div>
+        </div>
+
+        <div *ngIf="createError" class="text-sm text-red-600 mb-3">
+          {{ createError }}
+        </div>
+        <div *ngIf="createSuccess" class="text-sm text-green-600 mb-3">
+          {{ createSuccess }}
+        </div>
+
+        <div *ngIf="!createLoading">
+          <div class="mb-3">
+            <label for="create-name" class="text-xs text-gray-600"
+              >Nombre del cliente</label
+            >
+            <input
+              id="create-name"
+              type="text"
+              [(ngModel)]="createForm.nameReservation"
+              class="border rounded px-2 py-1 w-full"
+            />
+          </div>
+
+          <div class="mb-3">
+            <label for="create-date" class="text-xs text-gray-600">Fecha</label>
+            <!-- Reutilizamos el selector global de fecha para mantener coherencia -->
+            <input
+              id="create-date"
+              type="date"
+              [(ngModel)]="selectedDateIso"
+              [attr.min]="minDate"
+              (ngModelChange)="createForm.dateReservation = selectedDateIso ? formatIsoToDdMmYyyy(selectedDateIso) : ''"
+              class="border rounded px-2 py-1 w-full"
+            />
+            <div class="text-xs text-gray-500 mt-1">
+              Fecha para el detalle: {{ createForm.dateReservation }}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="text-xs text-gray-600" for="create-time">Hora</label>
+
+            <div class="text-xs text-gray-400 mt-1">
+              Selecciona una hora disponible (08:00 - 22:00)
+            </div>
+            <div *ngIf="loadingTimes" class="text-sm text-gray-500">
+              Cargando horarios...
+            </div>
+
+            <!-- Si hay múltiples detalles (reservas por mesa), mostrar selector por cada mesa -->
+            <div
+              *ngIf="createForm.detallesRequest && createForm.detallesRequest.length > 1"
+            >
+              <ul class="space-y-3 mt-2">
+                <li
+                  *ngFor="let d of createForm.detallesRequest"
+                  class="p-2 border rounded flex items-center justify-between gap-4"
+                >
+                  <div class="flex-1">
+                    <div class="text-sm font-medium">
+                      Mesa {{ d.tableId }} (Cap: {{ getMesaCapacity(d.tableId)
+                      || '-' }})
+                    </div>
+                    <div class="text-xs text-gray-500">
+                      Seleccione la hora para esta mesa
+                    </div>
+                  </div>
+                  <div>
+                    <select
+                      [(ngModel)]="d.hourReservation"
+                      class="border rounded px-2 py-1"
+                    >
+                      <option value="">-- Sin seleccionar --</option>
+                      <option
+                        *ngFor="let t of createTimeSlots"
+                        [value]="t"
+                        [disabled]="isSlotReservedForMesa(d.tableId, t) || isTimePast(t)"
+                      >
+                        {{ t }}
+                      </option>
+                    </select>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Si es una sola reserva, mostrar la grid de botones como antes -->
+            <div
+              *ngIf="!(createForm.detallesRequest && createForm.detallesRequest.length > 1)"
+              class="mt-2 grid grid-cols-3 gap-2 py-1"
+            >
+              <button
+                *ngFor="let t of createTimeSlots"
+                type="button"
+                class="px-2 py-1 rounded border text-sm text-gray-700 bg-white hover:bg-blue-50"
+                [disabled]="reservedSlotSet.has(t) || isTimePast(t)"
+                [attr.title]="reservedSlotSet.has(t) ? 'Reservada' : (isTimePast(t) ? 'Hora pasada' : 'Disponible')"
+                [class.opacity-50]="reservedSlotSet.has(t) || isTimePast(t)"
+                [class.cursor-not-allowed]="reservedSlotSet.has(t) || isTimePast(t)"
+                [class.border-blue-600]="createForm.detallesRequest[0]?.hourReservation === t"
+                [class.bg-blue-100]="createForm.detallesRequest[0]?.hourReservation === t"
+                (click)="selectCreateTime(t)"
+              >
+                {{ t }}
+                <span
+                  *ngIf="reservedSlotSet.has(t)"
+                  class="text-xs text-red-600 ml-1"
+                  >●</span
+                >
+                <span
+                  *ngIf="isTimePast(t) && !reservedSlotSet.has(t)"
+                  class="text-xs text-gray-400 ml-1"
+                  >⊘</span
+                >
+              </button>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="create-req" class="text-xs text-gray-600"
+              >Requerimientos</label
+            >
+            <textarea
+              id="create-req"
+              [(ngModel)]="createForm.detallesRequest[0].requirements"
+              class="border rounded px-2 py-1 w-full"
+              rows="2"
+            ></textarea>
+          </div>
+
+          <div
+            *ngIf="createForm.detallesRequest && createForm.detallesRequest.length > 1"
+            class="mb-3"
+          >
+            <div class="text-xs text-gray-600">Mesas seleccionadas</div>
+            <ul class="mt-2 space-y-2">
+              <li
+                *ngFor="let d of createForm.detallesRequest"
+                class="flex items-center justify-between p-2 border rounded"
+              >
+                <div class="text-sm">
+                  Mesa {{ d.tableId }} - Cap: {{ getMesaCapacity(d.tableId) ||
+                  '-' }}
+                </div>
+                <div class="text-sm">
+                  <ng-container *ngIf="d.hourReservation; else noHourTpl">
+                    <span
+                      [class.text-red-600]="isMesaReserved(d.tableId, d.hourReservation)"
+                      >{{ isMesaReserved(d.tableId, d.hourReservation) ?
+                      'Ocupada' : 'Disponible' }}</span
+                    >
+                  </ng-container>
+                  <ng-template #noHourTpl
+                    ><span class="text-gray-500">Sin hora</span></ng-template
+                  >
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer text-right">
+        <button
+          (click)="closeCreateModal()"
+          class="px-4 py-2 bg-gray-200 text-gray-800 rounded mr-2"
+        >
+          Cancelar
+        </button>
+        <button
+          (click)="crearReservacionSubmit()"
+          [disabled]="createLoading"
+          class="px-4 py-2 bg-blue-600 text-white rounded"
+        >
+          Crear reservación
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

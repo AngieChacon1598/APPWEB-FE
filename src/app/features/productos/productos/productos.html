@@ -1,0 +1,431 @@
+<!-- Título principal -->
+<div class="mb-3 p-4">
+  <div class="bg-gradient-to-r from-slate-600 via-gray-700 to-zinc-700 rounded-xl shadow-2xl p-4 mb-0 border border-slate-500/20">
+    <div class="flex items-center justify-between flex-wrap gap-4">
+      <div class="flex items-center gap-4">
+        <div class="bg-white/20 backdrop-blur-sm rounded-xl p-4 shadow-lg">
+          <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-3xl md:text-4xl font-extrabold text-white mb-2 tracking-tight">
+            {{isMenuView ? 'Menú del Restaurante' : (currentUser?.role === 'CLIENTE' ? 'Catálogo de Productos' : 'Gestión de Productos')}}
+          </h1>
+          <div class="flex items-center gap-3 flex-wrap">
+            <p class="text-slate-100 text-sm md:text-base font-medium">
+              {{isMenuView ? 'Explora nuestra deliciosa carta' : (currentUser?.role === 'CLIENTE' ? 'Explora nuestro menú' : 'Administra y controla todos los productos del restaurante')}}
+            </p>
+            <span class="hidden md:inline-block text-white/80 text-xs font-medium bg-white/10 backdrop-blur-sm rounded-full px-3 py-1 border border-white/20">
+              Usuario: {{currentUser?.username}} ({{currentUser?.role}})
+            </span>
+          </div>
+        </div>
+      </div>
+      <!-- Botones de Reporte y Carrito -->
+      <div class="flex items-center gap-3">
+        <!-- Botones de Reporte (solo para ADMIN y EMPLEADO) -->
+        <div *ngIf="currentUser?.role !== 'CLIENTE' && !isMenuView" class="flex items-center gap-2">
+          <!-- Descargar Activos -->
+          <button
+            (click)="downloadReport(1)"
+            [disabled]="generatingReportActivos || generatingReportInactivos"
+            [class]="generatingReportActivos 
+              ? 'px-3 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg text-sm font-medium transition-all duration-200 shadow-md flex items-center cursor-wait opacity-75' 
+              : generatingReportInactivos 
+                ? 'px-3 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center opacity-60 cursor-not-allowed'
+                : 'px-3 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center'"
+            title="Descargar reporte de productos activos"
+          >
+            <svg *ngIf="!generatingReportActivos" class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <svg *ngIf="generatingReportActivos" class="animate-spin w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {{ generatingReportActivos ? 'Generando...' : 'Activos' }}
+          </button>
+
+          <!-- Descargar Inactivos -->
+          <button
+            (click)="downloadReport(0)"
+            [disabled]="generatingReportActivos || generatingReportInactivos"
+            [class]="generatingReportInactivos 
+              ? 'px-3 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg text-sm font-medium transition-all duration-200 shadow-md flex items-center cursor-wait opacity-75' 
+              : generatingReportActivos 
+                ? 'px-3 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center opacity-60 cursor-not-allowed'
+                : 'px-3 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center'"
+            title="Descargar reporte de productos inactivos"
+          >
+            <svg *ngIf="!generatingReportInactivos" class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <svg *ngIf="generatingReportInactivos" class="animate-spin w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {{ generatingReportInactivos ? 'Generando...' : 'Inactivos' }}
+          </button>
+        </div>
+
+        <!-- Icono del carrito para CLIENTE y ADMIN -->
+        <div *ngIf="(currentUser?.role === 'CLIENTE' || isCliente()) || (currentUser?.role === 'ADMIN' || isAdmin())" class="relative">
+          <button
+            (click)="goToCart()"
+            class="relative bg-white/20 backdrop-blur-sm rounded-xl p-3 shadow-lg hover:bg-white/30 transition-all duration-200 group"
+            title="Ver carrito"
+          >
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+            <span
+              *ngIf="cartItemCount > 0"
+              class="absolute -top-2 -right-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full min-w-[1.5rem] h-6"
+            >
+              {{ cartItemCount }}
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- Barra de filtros con mejor estilo -->
+  <div class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-xl p-6 mb-3 shadow-lg border border-gray-200 dark:border-gray-600" *ngIf="currentUser?.role !== 'CLIENTE' && !isMenuView">
+    <div class="flex flex-wrap items-center gap-4">
+      <!-- Título de la sección -->
+      <div class="flex items-center">
+        <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z"></path>
+        </svg>
+        <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">Filtros de Búsqueda</h3>
+      </div>
+
+      <!-- Filtro por nombre -->
+      <div class="flex-1 min-w-64">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Buscar por nombre</label>
+        <div class="relative">
+          <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <input
+            class="w-full pl-10 pr-4 py-2.5 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 transition-all duration-200"
+            type="search"
+            placeholder="Escribe el nombre del producto..."
+            [(ngModel)]="filtroNombre"
+            (input)="aplicarFiltros()"
+          />
+        </div>
+      </div>
+
+      <!-- Filtro por categoría -->
+      <div class="min-w-48">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Categoría</label>
+        <div class="relative">
+          <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+          </svg>
+          <select
+            class="w-full pl-10 pr-8 py-2.5 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 transition-all duration-200 appearance-none cursor-pointer"
+            [(ngModel)]="filtroCategoria"
+            (change)="aplicarFiltros()"
+          >
+            <option value="">Todas las categorías</option>
+            <option *ngFor="let categoria of categorias" [value]="categoria.categoryId">
+              {{ categoria.name }}
+            </option>
+          </select>
+          <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Filtro por rango de precios -->
+      <div class="min-w-48">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rango de Precios</label>
+        <div class="flex items-center space-x-2">
+          <div class="relative">
+            <svg class="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+            </svg>
+            <input
+              class="w-20 pl-8 pr-3 py-2.5 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 transition-all duration-200"
+              type="number"
+              placeholder="Min"
+              [(ngModel)]="precioMinimo"
+              (input)="aplicarFiltros()"
+            />
+          </div>
+          <span class="text-gray-500 dark:text-gray-400 font-medium">-</span>
+          <div class="relative">
+            <svg class="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+            </svg>
+            <input
+              class="w-20 pl-8 pr-3 py-2.5 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 transition-all duration-200"
+              type="number"
+              placeholder="Max"
+              [(ngModel)]="precioMaximo"
+              (input)="aplicarFiltros()"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones de acción -->
+      <div class="flex items-end space-x-3 flex-wrap">
+        <!-- Botón limpiar filtros -->
+        <button
+          (click)="limpiarFiltros()"
+          class="px-4 py-2.5 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center"
+        >
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+          </svg>
+          Limpiar
+        </button>
+
+        <!-- Solo ADMIN y EMPLEADO pueden crear productos -->
+        <button
+          *ngIf="canManageProductos"
+          (click)="openFormulario()"
+          class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center"
+        >
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
+          Nuevo Producto
+        </button>
+      </div>
+    </div>
+  </div>
+
+<!-- Botones de filtro por estado (solo ADMIN y EMPLEADO) -->
+<div *ngIf="currentUser?.role !== 'CLIENTE' && !isMenuView" class="flex justify-center space-x-4 mb-3">
+  <button
+    (click)="showActiveProducts()"
+    [class]="showingActiveProducts ? 'px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors' : 'px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors'"
+  >
+    Productos Activos
+  </button>
+  <button
+    (click)="showInactiveProducts()"
+    [class]="!showingActiveProducts ? 'px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors' : 'px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors'"
+  >
+    Productos Inactivos
+  </button>
+</div>
+
+<!-- Loading indicator -->
+<div *ngIf="loading" class="text-center py-4">
+  <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+  <span class="ml-2">Cargando productos...</span>
+</div>
+
+<!-- Filtros simplificados para CLIENTES y vista MENU -->
+<div *ngIf="(currentUser?.role === 'CLIENTE' || isMenuView) && !loading" class="mb-6 p-4">
+  <div class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-xl shadow-lg border border-gray-200 dark:border-gray-600 p-4">
+    <div class="flex flex-wrap items-center gap-4">
+      <!-- Búsqueda por nombre -->
+      <div class="flex-1 min-w-64">
+        <div class="relative">
+          <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <input
+            class="w-full pl-10 pr-4 py-2.5 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+            type="search"
+            placeholder="Buscar en el menú..."
+            [(ngModel)]="filtroNombre"
+            (input)="aplicarFiltros()"
+          />
+        </div>
+      </div>
+      
+      <!-- Filtro por categoría -->
+      <div class="min-w-48">
+        <div class="relative">
+          <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+          </svg>
+          <select
+            class="w-full pl-10 pr-8 py-2.5 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all appearance-none cursor-pointer"
+            [(ngModel)]="filtroCategoria"
+            (change)="aplicarFiltros()"
+          >
+            <option value="">Todas las categorías</option>
+            <option *ngFor="let categoria of categorias" [value]="categoria.categoryId">
+              {{ categoria.name }}
+            </option>
+          </select>
+          <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Vista de Cards para CLIENTES y vista MENU -->
+<div *ngIf="(currentUser?.role === 'CLIENTE' || isMenuView) && !loading" class="p-4">
+  <div *ngIf="productos.length === 0" class="text-center py-12">
+    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+    </svg>
+    <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No hay productos disponibles</h3>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Intenta ajustar tus filtros de búsqueda.</p>
+  </div>
+  
+  <!-- Grid de Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div *ngFor="let producto of productos" class="group bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500">
+      <!-- Imagen del producto -->
+      <div class="relative h-48 bg-gray-200 dark:bg-gray-700 overflow-hidden">
+        <img 
+          [src]="producto.imagenUrl || 'https://via.placeholder.com/300x200?text=Sin+Imagen'" 
+          [alt]="producto.name"
+          class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+          (error)="$event.target.src='https://via.placeholder.com/300x200?text=Sin+Imagen'"
+        />
+        <!-- Badge de categoría -->
+        <div class="absolute top-3 right-3">
+          <span class="bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
+            {{ producto.category?.name || 'Sin categoría' }}
+          </span>
+        </div>
+      </div>
+      
+      <!-- Contenido de la card -->
+      <div class="p-5">
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+          {{ producto.name }}
+        </h3>
+        <p class="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">
+          {{ producto.description || 'Sin descripción' }}
+        </p>
+        
+        <!-- Precio y acción -->
+        <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div>
+            <span class="text-2xl font-extrabold text-blue-600 dark:text-blue-400">
+              S/ {{ producto.price?.toFixed(2) || '0.00' }}
+            </span>
+          </div>
+          <button
+            (click)="onViewProducto(producto)"
+            class="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg font-semibold transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center gap-2"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+            </svg>
+            Ver
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Productos table para ADMIN y EMPLEADO (solo en vista de gestión) -->
+<app-tables-components
+  *ngIf="currentUser?.role !== 'CLIENTE' && !isMenuView"
+  [data]="productos"
+  [columns]="columns"
+  [idTdable]="'menuId'"
+  [showActiveUsers]="showingActiveProducts"
+  [canManage]="canManageProductos"
+  (editar)="onEditProducto($event)"
+  (observar)="onViewProducto($event)"
+  (inactivar)="onDeleteProducto($event)">
+</app-tables-components>
+
+<!-- Controles de paginación (no mostrar en vista de menú) -->
+<div *ngIf="!isMenuView" class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-600">
+  <!-- Información de paginación -->
+  <div class="text-sm text-gray-600 dark:text-gray-400">
+    Mostrando {{ (currentPage * pageSize) + 1 }} - {{ Math.min((currentPage + 1) * pageSize, totalElements) }} de {{ totalElements }} productos
+  </div>
+
+  <!-- Selector de tamaño de página -->
+  <div class="flex items-center gap-2">
+    <label class="text-sm text-gray-600 dark:text-gray-400">Productos por página:</label>
+    <select 
+      (change)="onPageSizeChangeEvent($event)"
+      [value]="pageSize"
+      class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+      <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+    </select>
+  </div>
+
+  <!-- Navegación de páginas -->
+  <div class="flex items-center gap-2">
+    <!-- Botón Primera página -->
+    <button
+      (click)="goToFirstPage()"
+      [disabled]="currentPage === 0"
+      class="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+      Primera
+    </button>
+
+    <!-- Botón Página anterior -->
+    <button
+      (click)="goToPreviousPage()"
+      [disabled]="currentPage === 0"
+      class="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+      ‹
+    </button>
+
+    <!-- Números de página -->
+    <div class="flex gap-1">
+      <button
+        *ngFor="let page of getPageNumbers()"
+        (click)="onPageChange(page)"
+        [class]="page === currentPage 
+          ? 'px-3 py-1 text-sm border border-blue-500 rounded-md bg-blue-500 text-white font-medium' 
+          : 'px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors'">
+        {{ page + 1 }}
+      </button>
+    </div>
+
+    <!-- Botón Página siguiente -->
+    <button
+      (click)="goToNextPage()"
+      [disabled]="currentPage >= totalPages - 1"
+      class="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+      ›
+    </button>
+
+    <!-- Botón Última página -->
+    <button
+      (click)="goToLastPage()"
+      [disabled]="currentPage >= totalPages - 1"
+      class="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+      Última
+    </button>
+  </div>
+</div>
+
+<!-- Producto registration modal (solo ADMIN y EMPLEADO) -->
+<div *ngIf="open && canManageProductos" class="fixed inset-0 z-50 flex items-start justify-center">
+  <div class="absolute inset-0 modal-backdrop"></div>
+  <div
+    class="mt-16 bg-white dark:bg-gray-800 rounded shadow-lg w-11/12 max-w-2xl p-4 relative z-10"
+  >
+    <button (click)="open = false" class="absolute top-2 right-2 text-gray-600">
+      ✕
+    </button>
+    <app-forms-components
+      [tituloFormulario]="tituloFormulario"
+      [campos]="campos"
+      [datosIniciales]="editingProducto"
+      (guardar)="onGuardar($event)"
+      (cerrar)="onCerrar()"
+      (limpiar)="onLimpiar()"
+    ></app-forms-components>
+  </div>
+</div>

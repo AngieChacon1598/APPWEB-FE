@@ -1,0 +1,18 @@
+<div *ngIf="isAuthenticated" class="token-status">
+  <div class="token-info">
+    <span class="token-label">Token:</span>
+    <span [class]="'token-time ' + getStatusColor()">
+      {{ getStatusText() }}
+    </span>
+    <span *ngIf="isRefreshing" class="refreshing-indicator"> 🔄 </span>
+    <div class="token-user" *ngIf="userId !== null || userName">
+      <small
+        >Usuario: {{ userName || 'N/A' }}
+        <strong *ngIf="userId !== null">(ID: {{ userId }})</strong></small
+      >
+    </div>
+  </div>
+  <div class="token-warning">
+    <small>⚠️ Modo temporal: Auto-renovación cada 20s</small>
+  </div>
+</div>

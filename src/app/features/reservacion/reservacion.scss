@@ -1,0 +1,264 @@
+/* Styles específicos del componente Reservacion */
+
+.card-mesa {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 0.5rem;
+  padding: 0;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 200ms ease;
+}
+.card-mesa:hover {
+  box-shadow: 0 8px 24px rgba(2, 6, 23, 0.08);
+}
+
+.card-image {
+  height: 10rem;
+  position: relative;
+}
+
+.card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+}
+
+.card-image-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
+  color: white;
+  padding: 0.5rem 0.75rem;
+}
+
+.card-body {
+  padding: 0.75rem;
+}
+
+.btn-primary {
+  padding: 0.5rem 1rem;
+  background-color: #2563eb; /* blue-600 */
+  color: white;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+}
+.btn-primary:hover {
+  background-color: #1e40af;
+}
+
+.btn-outline {
+  padding: 0.5rem 1rem;
+  background: white;
+  color: #2563eb;
+  border-radius: 0.375rem;
+  border: 1px solid #2563eb;
+  cursor: pointer;
+}
+.btn-outline:hover {
+  background: #f1f5f9;
+}
+
+/* Header improvements */
+.reservacion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  border: 1px solid rgba(2, 6, 23, 0.04);
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+}
+.reservacion-header-left {
+  display: flex;
+  flex-direction: column;
+}
+.reservacion-title {
+  font-size: 1.5rem;
+  margin: 0;
+  color: #0f172a;
+  font-weight: 700;
+}
+.reservacion-sub {
+  margin: 0.25rem 0 0;
+  color: #475569;
+  font-size: 0.9rem;
+}
+.reservacion-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.date-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f8fafc;
+  border: 1px solid rgba(2, 6, 23, 0.04);
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.5rem;
+}
+.calendar-icon {
+  width: 18px;
+  height: 18px;
+  color: #0f172a;
+}
+.date-input {
+  border: none;
+  background: transparent;
+  padding: 0.25rem 0.35rem;
+  font-size: 0.95rem;
+}
+.date-input:focus {
+  outline: none;
+}
+.btn-multi {
+  /* Use primary app blue to match other action buttons */
+  background: #2563eb; /* blue-600 */
+  color: #ffffff;
+  border: none;
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.12);
+  transition: background 120ms ease, transform 120ms ease;
+}
+.btn-multi:hover {
+  background: #1e40af; /* blue-800 */
+  transform: translateY(-1px);
+}
+.btn-multi:focus {
+  outline: 3px solid rgba(37, 99, 235, 0.18);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .reservacion-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  .reservacion-header-right {
+    justify-content: flex-start;
+  }
+}
+
+/* Modal animation */
+.modal-enter {
+  transform: translateY(8px);
+  opacity: 0;
+}
+.modal-enter-active {
+  transform: translateY(0);
+  opacity: 1;
+  transition: all 180ms ease-out;
+}
+
+/* Modal polished styles */
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  /* Slightly lighter overlay so modal content pops */
+  background: rgba(0, 0, 0, 0.32);
+  /* keep a subtle backdrop blur but not too strong */
+  backdrop-filter: blur(2px);
+}
+
+.modal-content {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  max-width: 740px;
+  width: 95%;
+  box-shadow: 0 28px 60px rgba(2, 6, 23, 0.18);
+  transform-origin: center center;
+  background: #ffffff;
+  border: 1px solid rgba(2, 6, 23, 0.06);
+}
+
+.modal-header {
+  padding: 1rem 1.25rem;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid rgba(2, 6, 23, 0.04);
+}
+.modal-header h3 {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.08rem;
+  color: #0f172a;
+}
+.modal-close-btn {
+  background: transparent;
+  border: none;
+  color: #475569;
+  cursor: pointer;
+  font-size: 0.95rem;
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+.modal-close-btn:hover {
+  background: rgba(2, 6, 23, 0.04);
+}
+
+.modal-body {
+  padding: 1.25rem;
+  max-height: 60vh;
+  overflow: auto;
+  color: #0f172a;
+}
+.modal-footer {
+  padding: 0.75rem 1.25rem;
+  background: #fff;
+  border-top: 1px solid rgba(2, 6, 23, 0.04);
+}
+
+.reserved-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid rgba(2, 6, 23, 0.04);
+}
+.reserved-row + .reserved-row {
+  margin-top: 0.5rem;
+}
+.reserved-row.reserved {
+  border-left: 4px solid #ef4444;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 245, 245, 0.9),
+    rgba(255, 250, 250, 0.9)
+  );
+}
+.reserved-badge {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+}
+
+/* Small responsive tweak */
+@media (min-width: 1024px) {
+  .modal-content {
+    width: 740px;
+  }
+}

@@ -1,0 +1,38 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (production)
+        # Calcular base-href desde el nombre del repositorio (útil si el repo cambia de nombre)
+        env:
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: npm run build -- --configuration production --base-href "/$REPO_NAME/"
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Angular v20+ outputs the browser-ready files under dist/<project>/browser
+          publish_dir: ./dist/RestauranteLosPinos/browser

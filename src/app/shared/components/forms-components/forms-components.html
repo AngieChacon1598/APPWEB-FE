@@ -1,0 +1,81 @@
+<section class="max-w-4xl p-6 mx-auto bg-white rounded-md dark:bg-gray-800">
+  <h2 class="text-lg font-semibold text-gray-700 capitalize dark:text-white">
+    {{tituloFormulario}}
+  </h2>
+
+  <form [formGroup]="formulario">
+    <div class="grid grid-cols-1 gap-6 mt-4 sm:grid-cols-2">
+      <div *ngFor="let item of campos">
+        <label class="text-gray-700 dark:text-gray-200" for="username">
+          {{item.etiqueta}}
+          <span class="text-red-500">*</span>
+        </label>
+        
+        <!-- Campo de tipo select -->
+        <select
+          *ngIf="item.tipo === 'select'"
+          [id]="item.nombre"
+          [formControlName]="item.nombre"
+          [class]="hasError(item.nombre) ? 'block w-full px-4 py-2 mt-2 text-gray-700 bg-white border-2 border-red-500 rounded-md dark:bg-gray-800 dark:text-gray-300 focus:border-red-500 focus:ring-red-300 focus:ring-opacity-40 dark:focus:border-red-500 focus:outline-none focus:ring' : 'block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring'"
+        >
+          <option value="">Selecciona una opción</option>
+          <option *ngFor="let opcion of item.opciones" [value]="opcion.value">
+            {{ opcion.label }}
+          </option>
+        </select>
+        
+        <!-- Campo de tipo input -->
+        <input
+          *ngIf="item.tipo !== 'select'"
+          [id]="item.nombre"
+          [type]="item.tipo"
+          [formControlName]="item.nombre"
+          [class]="hasError(item.nombre) ? 'block w-full px-4 py-2 mt-2 text-gray-700 bg-white border-2 border-red-500 rounded-md dark:bg-gray-800 dark:text-gray-300 focus:border-red-500 focus:ring-red-300 focus:ring-opacity-40 dark:focus:border-red-500 focus:outline-none focus:ring' : 'block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring'"
+          (input)="item.nombre === 'imagenUrl' ? onImageUrlChange($event) : null"
+        />
+        
+        <!-- Vista previa de imagen -->
+        <div *ngIf="item.nombre === 'imagenUrl' && formulario.get('imagenUrl')?.value && isValidUrl(formulario.get('imagenUrl')?.value)" class="mt-2">
+          <div class="text-sm text-gray-600 dark:text-gray-400 mb-2">Vista previa:</div>
+          <img 
+            [src]="formulario.get('imagenUrl')?.value" 
+            [alt]="'Vista previa de imagen'"
+            class="w-32 h-32 object-cover rounded-lg border border-gray-300 dark:border-gray-600"
+            (error)="onImageError($event)"
+            (load)="onImageLoad($event)"
+          />
+        </div>
+        
+        <!-- Mensaje de error -->
+        <div *ngIf="hasError(item.nombre)" class="mt-1 text-sm text-red-600 dark:text-red-400">
+          {{ getErrorMessage(item.nombre) }}
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end mt-6">
+      <button
+        type="button"
+        (click)="onGuardar()"
+        [class]="formulario.valid ? 'px-8 py-2.5 mx-2 leading-5 text-white transition-colors duration-300 transform bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:bg-green-600' : 'px-8 py-2.5 mx-2 leading-5 text-white transition-colors duration-300 transform bg-gray-400 rounded-md cursor-not-allowed focus:outline-none'"
+        [disabled]="!formulario.valid"
+      >
+        {{ formulario.valid ? 'Guardar' : 'Completa los campos' }}
+      </button>
+      <button
+        type="button"
+        (click)="onlimpiar()"
+        class="px-8 py-2.5 mx-2 leading-5 text-white transition-colors duration-300 transform bg-gray-700 rounded-md hover:bg-gray-600 focus:outline-none focus:bg-gray-600"
+      >
+        Limpiar
+      </button>
+      <button
+        type="button"
+        (click)="onClose()"
+        class="px-8 py-2.5 mx-2 leading-5 text-white transition-colors duration-300 transform bg-gray-700 rounded-md hover:bg-red-600 focus:outline-none focus:bg-gray-600"
+      >
+        Cerrar
+      </button>
+    </div>
+  </form>
+</section>

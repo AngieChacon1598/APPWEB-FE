@@ -1,0 +1,216 @@
+<div class="form-container">
+  <div class="form-header">
+    <h1 class="form-title">
+      {{ isEdit ? '✏️ Editar Ticket de Venta' : '➕ Crear Nuevo Ticket' }}
+    </h1>
+    <p class="form-subtitle">
+      {{ isEdit ? 'Modifica los datos del ticket de venta' : 'Completa la información para crear un nuevo ticket' }}
+    </p>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">
+      {{ isEdit ? 'Cargando ticket...' : 'Procesando ticket...' }}
+    </p>
+  </div>
+
+  <!-- Success Message -->
+  <div *ngIf="success" class="success-message">
+    <span class="message-icon">✅</span>
+    <span>{{ success }}</span>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="error-message">
+    <span class="message-icon">❌</span>
+    <span>{{ error }}</span>
+  </div>
+
+  <!-- Formulario -->
+  <div *ngIf="!loading" class="form-card">
+    <form [formGroup]="salesForm" (ngSubmit)="onSubmit()">
+      
+      <!-- Información Principal -->
+      <div class="form-section">
+        <h2 class="section-title">📋 Información Principal</h2>
+        
+        <div class="form-grid">
+          <!-- Total de Pago -->
+          <div class="form-group">
+            <label for="totalPayment" class="form-label">
+              💰 Total de Pago *
+            </label>
+            <input 
+              type="number" 
+              id="totalPayment"
+              formControlName="totalPayment"
+              step="0.01"
+              min="0.01"
+              class="form-input"
+              placeholder="0.00">
+            <div *ngIf="isFieldInvalid('totalPayment')" class="field-error">
+              {{ getFieldError('totalPayment') }}
+            </div>
+          </div>
+
+          <!-- Entrega -->
+          <div class="form-group">
+            <label for="delivery" class="form-label">
+              🚚 Entrega a Domicilio *
+            </label>
+            <select 
+              id="delivery" 
+              formControlName="delivery" 
+              (change)="onDeliveryChange()"
+              class="form-select">
+              <option *ngFor="let option of deliveryOptions" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dirección de Entrega -->
+      <div *ngIf="salesForm.get('delivery')?.value === 'SI'" class="form-section">
+        <h2 class="section-title">🏠 Dirección de Entrega</h2>
+        <div class="form-group">
+          <label for="deliveryAddress" class="form-label">
+            📍 Dirección Completa *
+          </label>
+          <textarea 
+            id="deliveryAddress"
+            formControlName="deliveryAddress"
+            rows="3"
+            class="form-textarea"
+            placeholder="Ingrese la dirección completa de entrega">
+          </textarea>
+          <div *ngIf="isFieldInvalid('deliveryAddress')" class="field-error">
+            {{ getFieldError('deliveryAddress') }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Configuración de Estado y Pago -->
+      <div class="form-section">
+        <h2 class="section-title">⚙️ Configuración</h2>
+        
+        <div class="form-grid">
+          <!-- Estado de Orden -->
+          <div class="form-group">
+            <label for="idTypeState" class="form-label">
+              📊 Estado de Orden *
+            </label>
+            <select 
+              id="idTypeState" 
+              formControlName="idTypeState"
+              class="form-select">
+              <option *ngFor="let status of orderStatuses" [value]="status.id">
+                {{ status.name }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Tipo de Pago -->
+          <div class="form-group">
+            <label for="idPaymentType" class="form-label">
+              💳 Tipo de Pago *
+            </label>
+            <select 
+              id="idPaymentType" 
+              formControlName="idPaymentType"
+              class="form-select">
+              <option *ngFor="let payment of paymentTypes" [value]="payment.id">
+                {{ payment.name }}
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notas Adicionales -->
+      <div class="form-section">
+        <h2 class="section-title">📝 Notas Adicionales</h2>
+        <div class="form-group">
+          <label for="note" class="form-label">
+            💬 Notas del Ticket
+          </label>
+          <textarea 
+            id="note"
+            formControlName="note"
+            rows="4"
+            class="form-textarea"
+            placeholder="Ingrese notas adicionales sobre el ticket (opcional)">
+          </textarea>
+        </div>
+      </div>
+
+      <!-- Información del Usuario -->
+      <div class="form-section">
+        <h2 class="section-title">👤 Información del Usuario</h2>
+        <div class="form-group">
+          <label for="userId" class="form-label">
+            🆔 ID de Usuario *
+          </label>
+          <input 
+            type="number" 
+            id="userId"
+            formControlName="userId"
+            class="form-input"
+            placeholder="ID del usuario">
+          <div *ngIf="isFieldInvalid('userId')" class="field-error">
+            {{ getFieldError('userId') }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen del Pedido -->
+      <div class="form-section" *ngIf="orderItems.length > 0">
+        <h2 class="section-title">📊 Resumen del Pedido</h2>
+        
+        <div class="summary-grid">
+          <div class="summary-item">
+            <label class="summary-label">Subtotal:</label>
+            <span class="summary-value">{{ formatCurrency(calculateTotal()) }}</span>
+          </div>
+          
+          <div class="summary-item">
+            <label class="summary-label">IGV (18%):</label>
+            <span class="summary-value">{{ formatCurrency(calculateIGV()) }}</span>
+          </div>
+          
+          <div class="summary-item total-item">
+            <label class="summary-label">Total:</label>
+            <span class="summary-value total-value">{{ formatCurrency(calculateTotalWithIGV()) }}</span>
+          </div>
+          
+          <div class="summary-item">
+            <label class="summary-label">Productos en el pedido:</label>
+            <span class="summary-value">{{ orderItems.length }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="form-actions">
+        <button 
+          type="button" 
+          (click)="goBack()"
+          class="btn btn-secondary">
+          <span class="btn-icon">←</span>
+          Volver a Tickets
+        </button>
+        
+        <button 
+          type="submit" 
+          [disabled]="salesForm.invalid || loading"
+          class="btn btn-primary">
+          <span class="btn-icon">{{ isEdit ? '💾' : '➕' }}</span>
+          {{ isEdit ? 'Actualizar Ticket' : 'Crear Ticket' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

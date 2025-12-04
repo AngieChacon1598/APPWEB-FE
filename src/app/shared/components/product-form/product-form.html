@@ -1,0 +1,140 @@
+<!-- Modal Backdrop -->
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" (click)="onBackdropClick($event)">
+  <!-- Modal Content -->
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <!-- Modal Header -->
+    <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+        {{ isEdit ? 'Editar Producto' : 'Nuevo Producto' }}
+      </h3>
+      <button
+        (click)="closeModal()"
+        class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="error" class="mx-6 mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+      {{ error }}
+    </div>
+
+    <!-- Modal Body -->
+    <form (ngSubmit)="onSubmit()" class="p-6 space-y-4">
+      <!-- Nombre -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Nombre *
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="formData.name"
+          name="name"
+          required
+          placeholder="Nombre del producto"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+        >
+      </div>
+
+      <!-- Descripción -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Descripción *
+        </label>
+        <textarea
+          [(ngModel)]="formData.description"
+          name="description"
+          required
+          rows="3"
+          placeholder="Descripción del producto"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+        ></textarea>
+      </div>
+
+      <!-- Precio -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Precio (S/) *
+        </label>
+        <input
+          type="number"
+          [(ngModel)]="formData.price"
+          name="price"
+          required
+          min="0.01"
+          step="0.01"
+          placeholder="0.00"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+        >
+      </div>
+
+      <!-- URL de Imagen -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          URL de Imagen
+        </label>
+        <input
+          type="url"
+          [(ngModel)]="formData.imagenUrl"
+          name="imagenUrl"
+          placeholder="https://example.com/imagen.jpg"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+        >
+      </div>
+
+      <!-- Categoría -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Categoría *
+        </label>
+        <select
+          [(ngModel)]="formData.categoryId"
+          name="categoryId"
+          required
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+        >
+          <option value="0">Seleccionar categoría</option>
+          <option *ngFor="let category of categories" [value]="category.categoryId">
+            {{ category.name }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Preview de Imagen -->
+      <div *ngIf="formData.imagenUrl" class="mt-4">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Vista Previa
+        </label>
+        <img
+          [src]="formData.imagenUrl"
+          [alt]="formData.name || 'Producto'"
+          class="w-32 h-32 object-cover rounded border"
+          (error)="$event.target.style.display='none'"
+        >
+      </div>
+    </form>
+
+    <!-- Modal Footer -->
+    <div class="flex justify-end space-x-3 p-6 border-t border-gray-200 dark:border-gray-700">
+      <button
+        type="button"
+        (click)="closeModal()"
+        class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-500"
+      >
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        (click)="onSubmit()"
+        [disabled]="loading"
+        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <span *ngIf="loading" class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
+        {{ isEdit ? 'Actualizar' : 'Crear' }}
+      </button>
+    </div>
+  </div>
+</div>
