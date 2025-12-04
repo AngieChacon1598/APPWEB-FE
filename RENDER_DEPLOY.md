@@ -65,6 +65,7 @@ El proyecto ahora incluye:
 - `src/environments/environment.prod.ts` - Entorno de producción (se genera automáticamente)
 - `src/environments/conexion.ts` - Configuración de URL base (usa environment)
 - `build-env.js` - Script que genera el archivo de entorno de producción
+- `public/_redirects` - Archivo de redirección para SPA (redirige todas las rutas a index.html)
 - `.env.production` - Referencia de variables de entorno (no se usa directamente)
 
 ## Verificación
@@ -98,6 +99,12 @@ El proyecto ahora incluye:
 
 - Render reconstruye automáticamente cuando haces push
 - Si no se actualiza, haz clic en **"Manual Deploy"** en Render Dashboard
+
+### Error "Not Found" al acceder a rutas
+
+- Asegúrate de que el archivo `public/_redirects` existe y contiene: `/*    /index.html   200`
+- Este archivo es necesario para que las SPAs (Single Page Applications) funcionen correctamente
+- El archivo se copia automáticamente al `dist` durante el build
 
 ## Notas Importantes
 
