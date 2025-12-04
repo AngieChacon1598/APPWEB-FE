@@ -102,9 +102,17 @@ El proyecto ahora incluye:
 
 ### Error "Not Found" al acceder a rutas
 
-- Asegúrate de que el archivo `public/_redirects` existe y contiene: `/*    /index.html   200`
-- Este archivo es necesario para que las SPAs (Single Page Applications) funcionen correctamente
-- El archivo se copia automáticamente al `dist` durante el build
+**Solución Rápida:**
+1. Ve a Render Dashboard → Settings → Busca "Redirects/Rewrites"
+2. Agrega: Source: `/*`, Destination: `/index.html`, Status: `200`
+3. Guarda y espera el rebuild
+
+**Solución Automática:**
+- El archivo `public/_redirects` ya existe y contiene: `/*    /index.html   200`
+- El script `post-build.js` asegura que se copie a `dist/` después del build
+- Si el problema persiste, configura Redirects manualmente en Render Dashboard
+
+**Ver detalles completos en:** `SOLUCION_NOT_FOUND.md`
 
 ## Notas Importantes
 
